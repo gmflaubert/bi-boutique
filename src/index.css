@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #E84D8A;
+  --color-primary-dark: #C93A73;
+  --color-primary-light: #F5A3C7;
+  --color-accent: #6BC5D2;
+  --color-accent-dark: #4BA8B5;
+  --color-bg: #FDF2F8;
+  --color-bg-alt: #FFFFFF;
+  --color-text: #1F2937;
+  --color-text-light: #6B7280;
+  --color-surface: #FFFFFF;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.btn-primary {
+  @apply bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors duration-200 cursor-pointer;
+}
+
+.btn-secondary {
+  @apply border-2 border-primary text-primary px-6 py-3 rounded-lg font-medium hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer;
+}
+
+.btn-accent {
+  @apply bg-accent text-white px-6 py-3 rounded-lg font-medium hover:bg-accent-dark transition-colors duration-200 cursor-pointer;
+}
+
+.card {
+  @apply bg-surface rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+input:focus, select:focus, textarea:focus {
+  @apply outline-none ring-2 ring-primary/50;
+}
