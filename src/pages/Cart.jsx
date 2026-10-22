@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, Tag } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useCart } from '../context/CartContext';
+import { useProducts } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
 import { usePromos } from '../context/PromoContext';
 import { formatPrice } from '../utils/storage';
@@ -10,16 +11,22 @@ import { buildWhatsAppMessage, getWhatsAppUrl } from '../utils/whatsapp';
 import { storeSettings } from '../data/initialProducts';
 
 export default function Cart() {
-  const { items, removeFromCart, updateQuantity, clearCart, getTotal } = useCart();
+  const { items, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { getProduct } = useProducts();
   const { addOrder } = useOrders();
   const { validatePromo, usePromo } = usePromos();
   const navigate = useNavigate();
+
+  const liveItems = items.map(item => ({
+    ...item,
+    product: getProduct(item.product.id) || item.product,
+  }));
 
   const [promoCode, setPromoCode] = useState('');
   const [promoResult, setPromoResult] = useState(null);
   const [showQR, setShowQR] = useState(false);
 
-  const subtotal = getTotal();
+  const subtotal = liveItems.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
   const discount = promoResult?.valid ? promoResult.discount : 0;
   const total = subtotal - discount;
 
@@ -33,14 +40,14 @@ export default function Cart() {
     if (promoResult?.valid) {
       usePromo(promoResult.promo.id);
     }
-    addOrder(items, total, '', promoResult?.valid ? promoCode : null);
+    addOrder(liveItems, total, '', promoResult?.valid ? promoCode : null);
     setShowQR(true);
   }
 
-  const whatsappMessage = buildWhatsAppMessage(items, total, promoResult?.valid ? promoCode : null, discount);
+  const whatsappMessage = buildWhatsAppMessage(liveItems, total, promoResult?.valid ? promoCode : null, discount);
   const whatsappUrl = getWhatsAppUrl(storeSettings.whatsappNumber, whatsappMessage);
 
-  if (items.length === 0 && !showQR) {
+  if (liveItems.length === 0 && !showQR) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
@@ -91,8 +98,8 @@ export default function Cart() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item, idx) => (
-            <div key={idx} className="bg-white rounded-xl p-4 flex gap-4 shadow-sm">
+          {liveItems.map((item) => (
+            <div key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}`} className="bg-white rounded-xl p-4 flex gap-4 shadow-sm">
               <img
                 src={item.product.images[0]}
                 alt={item.product.name}
@@ -140,7 +147,7 @@ export default function Cart() {
 
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-sm">
-              <span className="text-text-light">Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
+              <span className="text-text-light">Subtotal ({liveItems.reduce((s, i) => s + i.quantity, 0)} items)</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
             {discount > 0 && (

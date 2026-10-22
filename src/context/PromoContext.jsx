@@ -11,7 +11,7 @@ const initialPromos = [
     value: 10,
     active: true,
     minPurchase: 20000,
-    expiresAt: '2025-12-31',
+    expiresAt: '2027-12-31',
     usageCount: 0,
   },
   {
@@ -57,9 +57,10 @@ export function PromoProvider({ children }) {
     if (total < promo.minPurchase) {
       return { valid: false, message: `Minimum purchase of RWF ${promo.minPurchase.toLocaleString()} required` };
     }
-    const discount = promo.type === 'percentage'
+    const raw = promo.type === 'percentage'
       ? Math.round(total * promo.value / 100)
       : promo.value;
+    const discount = Math.min(raw, total);
     return { valid: true, discount, promo };
   }
 

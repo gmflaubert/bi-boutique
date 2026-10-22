@@ -29,10 +29,10 @@ export default function Home() {
               From evening gowns to everyday essentials — crafted for the modern, confident you.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/shop" className="btn-primary inline-flex items-center gap-2 bg-white !text-primary hover:!bg-gray-100 no-underline">
+              <Link to="/shop" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium no-underline transition-colors duration-200" style={{ backgroundColor: 'white', color: '#E84D8A' }}>
                 Shop Now <ArrowRight size={18} />
               </Link>
-              <Link to="/about" className="btn-secondary !border-white !text-white hover:!bg-white/20 no-underline">
+              <Link to="/about" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium no-underline border-2 border-white text-white transition-colors duration-200 hover:bg-white/20">
                 Our Story
               </Link>
             </div>
