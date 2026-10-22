@@ -1,74 +1,69 @@
-import { createContext, useContext, useState } from 'react';
-import { loadFromStorage, saveToStorage } from '../utils/storage';
+import { createContext, useContext, useState } from 'react'
+import { readStorage, writeStorage } from '../utils'
 
-const CartContext = createContext();
+const CartContext = createContext()
 
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => loadFromStorage('bi_cart', []));
-
-  function persist(updated) {
-    setItems(updated);
-    saveToStorage('bi_cart', updated);
-  }
+  const [cart, setCart] = useState(() => readStorage('bi_cart', []))
 
   function addToCart(product, selectedSize, selectedColor, quantity = 1) {
-    const existing = items.find(
-      i => i.product.id === product.id && i.selectedSize === selectedSize && i.selectedColor === selectedColor
-    );
-    if (existing) {
-      persist(items.map(i =>
-        i === existing ? { ...i, quantity: i.quantity + quantity } : i
-      ));
-    } else {
-      persist([...items, { product, selectedSize, selectedColor, quantity }]);
-    }
+    setCart(prev => {
+      const existing = prev.find(
+        item => item.product.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor
+      )
+      let updated
+      if (existing) {
+        updated = prev.map(item =>
+          item.product.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      } else {
+        updated = [...prev, { product, selectedSize, selectedColor, quantity }]
+      }
+      writeStorage('bi_cart', updated)
+      return updated
+    })
   }
 
   function removeFromCart(productId, selectedSize, selectedColor) {
-    persist(items.filter(
-      i => !(i.product.id === productId && i.selectedSize === selectedSize && i.selectedColor === selectedColor)
-    ));
+    setCart(prev => {
+      const updated = prev.filter(
+        item => !(item.product.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor)
+      )
+      writeStorage('bi_cart', updated)
+      return updated
+    })
   }
 
   function updateQuantity(productId, selectedSize, selectedColor, quantity) {
-    if (quantity <= 0) {
-      removeFromCart(productId, selectedSize, selectedColor);
-      return;
-    }
-    persist(items.map(i =>
-      i.product.id === productId && i.selectedSize === selectedSize && i.selectedColor === selectedColor
-        ? { ...i, quantity }
-        : i
-    ));
+    if (quantity < 1) return
+    setCart(prev => {
+      const updated = prev.map(item =>
+        item.product.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor
+          ? { ...item, quantity }
+          : item
+      )
+      writeStorage('bi_cart', updated)
+      return updated
+    })
   }
 
   function clearCart() {
-    persist([]);
+    setCart([])
+    writeStorage('bi_cart', [])
   }
 
-  function getTotal() {
-    return items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  }
-
-  function getItemCount() {
-    return items.reduce((sum, i) => sum + i.quantity, 0);
-  }
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
 
   return (
-    <CartContext.Provider value={{
-      items,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      getTotal,
-      getItemCount,
-    }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal }}>
       {children}
     </CartContext.Provider>
-  );
+  )
 }
 
 export function useCart() {
-  return useContext(CartContext);
+  return useContext(CartContext)
 }

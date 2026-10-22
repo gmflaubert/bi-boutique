@@ -1,61 +1,46 @@
-import { createContext, useContext, useState } from 'react';
-import { initialProducts } from '../data/initialProducts';
-import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
+import { createContext, useContext, useState } from 'react'
+import { readStorage, writeStorage, generateId } from '../utils'
+import { DEFAULT_PRODUCTS } from '../data/products'
 
-const ProductContext = createContext();
+const ProductContext = createContext()
 
 export function ProductProvider({ children }) {
-  const [products, setProducts] = useState(
-    () => loadFromStorage('bi_products', initialProducts)
-  );
-
-  function persist(updated) {
-    setProducts(updated);
-    saveToStorage('bi_products', updated);
-  }
+  const [products, setProducts] = useState(() => readStorage('bi_products', DEFAULT_PRODUCTS))
 
   function addProduct(product) {
-    const newProduct = { ...product, id: generateId(), createdAt: new Date().toISOString().split('T')[0] };
-    persist([...products, newProduct]);
-    return newProduct;
+    const newProduct = {
+      ...product,
+      id: generateId(),
+      createdAt: new Date().toISOString(),
+    }
+    const updated = [...products, newProduct]
+    setProducts(updated)
+    writeStorage('bi_products', updated)
   }
 
-  function updateProduct(id, updates) {
-    persist(products.map(p => p.id === id ? { ...p, ...updates } : p));
+  function updateProduct(id, data) {
+    const updated = products.map(p => p.id === id ? { ...p, ...data } : p)
+    setProducts(updated)
+    writeStorage('bi_products', updated)
   }
 
   function deleteProduct(id) {
-    persist(products.filter(p => p.id !== id));
+    const updated = products.filter(p => p.id !== id)
+    setProducts(updated)
+    writeStorage('bi_products', updated)
   }
 
   function getProduct(id) {
-    return products.find(p => p.id === id);
-  }
-
-  function getFeaturedProducts() {
-    return products.filter(p => p.featured && p.inStock);
-  }
-
-  function getProductsByCategory(category) {
-    if (category === 'All') return products.filter(p => p.inStock);
-    return products.filter(p => p.category === category && p.inStock);
+    return products.find(p => p.id === id)
   }
 
   return (
-    <ProductContext.Provider value={{
-      products,
-      addProduct,
-      updateProduct,
-      deleteProduct,
-      getProduct,
-      getFeaturedProducts,
-      getProductsByCategory,
-    }}>
+    <ProductContext.Provider value={{ products, addProduct, updateProduct, deleteProduct, getProduct }}>
       {children}
     </ProductContext.Provider>
-  );
+  )
 }
 
 export function useProducts() {
-  return useContext(ProductContext);
+  return useContext(ProductContext)
 }

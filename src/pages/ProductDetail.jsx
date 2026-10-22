@@ -1,86 +1,72 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, MessageCircle, ChevronLeft, Minus, Plus, Check } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import { useProducts } from '../context/ProductContext';
-import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/storage';
-import { buildSingleProductMessage, getWhatsAppUrl } from '../utils/whatsapp';
-import { storeSettings } from '../data/initialProducts';
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { ArrowLeft, Minus, Plus, ShoppingBag, MessageCircle, Check, X } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
+import { useProducts } from '../context/ProductContext'
+import { useCart } from '../context/CartContext'
+import { formatPrice, buildWhatsAppUrl, buildProductOrderMessage } from '../utils'
+import { STORE_CONFIG } from '../config'
 
 export default function ProductDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { getProduct } = useProducts();
-  const { addToCart } = useCart();
-  const product = getProduct(id);
+  const { id } = useParams()
+  const { getProduct } = useProducts()
+  const { addToCart } = useCart()
+  const product = getProduct(id)
 
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [showQR, setShowQR] = useState(false);
-  const [added, setAdded] = useState(false);
+  const [activeImage, setActiveImage] = useState(0)
+  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || '')
+  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0]?.name || '')
+  const [quantity, setQuantity] = useState(1)
+  const [added, setAdded] = useState(false)
+  const [showQR, setShowQR] = useState(false)
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold mb-4">Product Not Found</h2>
-        <button onClick={() => navigate('/shop')} className="btn-primary">Back to Shop</button>
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <p style={{ color: 'var(--color-text-light)' }}>Product not found.</p>
+        <Link to="/shop" className="no-underline" style={{ color: 'var(--color-primary)' }}>Back to Shop</Link>
       </div>
-    );
+    )
   }
 
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-  const whatsappMessage = buildSingleProductMessage(product, selectedSize || product.sizes[0], selectedColor || product.colors[0]?.name, quantity);
-  const whatsappUrl = getWhatsAppUrl(storeSettings.whatsappNumber, whatsappMessage);
+  const onSale = product.originalPrice && product.originalPrice > product.price
 
-  function handleAddToCart() {
-    const size = selectedSize || product.sizes[0];
-    const color = selectedColor || product.colors[0]?.name;
-    addToCart(product, size, color, quantity);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+  const handleAddToCart = () => {
+    addToCart(product, selectedSize, selectedColor, quantity)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
   }
 
-  function handleOrderNow() {
-    if (!selectedSize && product.sizes.length > 0 && product.sizesEditable) {
-      setSelectedSize(product.sizes[0]);
-    }
-    if (!selectedColor && product.colors.length > 0 && product.colorsEditable) {
-      setSelectedColor(product.colors[0]?.name);
-    }
-    setShowQR(true);
+  const waMessage = buildProductOrderMessage(product, selectedSize, selectedColor, quantity)
+  const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
+
+  const isLightColor = (hex) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return (r * 299 + g * 587 + b * 114) / 1000 > 180
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1 text-text-light hover:text-primary mb-6 bg-transparent border-none cursor-pointer text-sm"
-      >
-        <ChevronLeft size={18} /> Back
-      </button>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <Link to="/shop" className="inline-flex items-center gap-1 text-sm mb-6 no-underline" style={{ color: 'var(--color-text-light)' }}>
+        <ArrowLeft size={16} /> Back to Shop
+      </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="grid md:grid-cols-2 gap-10">
         {/* Images */}
         <div>
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-4">
-            <img
-              src={product.images[selectedImage]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+          <div className="rounded-xl overflow-hidden bg-gray-100" style={{ aspectRatio: '3/4' }}>
+            <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
           </div>
           {product.images.length > 1 && (
-            <div className="flex gap-3">
+            <div className="flex gap-2 mt-3">
               {product.images.map((img, i) => (
                 <button
                   key={i}
-                  onClick={() => setSelectedImage(i)}
-                  className={`w-20 h-20 rounded-lg overflow-hidden border-2 cursor-pointer p-0 ${
-                    selectedImage === i ? 'border-primary' : 'border-gray-200'
-                  }`}
+                  onClick={() => setActiveImage(i)}
+                  className="w-16 h-20 rounded-lg overflow-hidden cursor-pointer"
+                  style={{ border: i === activeImage ? '2px solid var(--color-primary)' : '2px solid transparent' }}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
@@ -89,136 +75,126 @@ export default function ProductDetail() {
           )}
         </div>
 
-        {/* Details */}
+        {/* Info */}
         <div>
-          <p className="text-sm text-text-light uppercase tracking-wide mb-1">{product.category}</p>
-          <h1 className="text-3xl font-bold mb-3">{product.name}</h1>
-
-          <div className="flex items-baseline gap-3 mb-4">
-            <span className="text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
-            {hasDiscount && (
-              <>
-                <span className="text-lg text-text-light line-through">{formatPrice(product.originalPrice)}</span>
-                <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded">
-                  -{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
-                </span>
-              </>
+          <p className="text-sm font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--color-primary)' }}>{product.category}</p>
+          <h1 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+            {product.name}
+          </h1>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>{formatPrice(product.price)}</span>
+            {onSale && (
+              <span className="text-lg line-through" style={{ color: 'var(--color-text-light)' }}>{formatPrice(product.originalPrice)}</span>
             )}
           </div>
+          <p className="mb-6" style={{ color: 'var(--color-text-light)' }}>{product.description}</p>
 
-          <p className="text-text-light leading-relaxed mb-6">{product.description}</p>
-
-          {/* Sizes */}
+          {/* Size Selector */}
           {product.sizes.length > 0 && (
-            <div className="mb-5">
-              <label className="block text-sm font-semibold mb-2">
-                Size {!product.sizesEditable && <span className="text-text-light font-normal">(fixed)</span>}
-              </label>
+            <div className="mb-6">
+              <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Size</p>
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map(size => {
-                  const isSelected = (selectedSize || product.sizes[0]) === size;
-                  return (
-                    <button
-                      key={size}
-                      onClick={() => product.sizesEditable && setSelectedSize(size)}
-                      disabled={!product.sizesEditable}
-                      className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                        isSelected
-                          ? 'bg-primary text-white border-primary'
-                          : product.sizesEditable
-                            ? 'bg-white text-text border-gray-200 hover:border-primary cursor-pointer'
-                            : 'bg-gray-100 text-text-light border-gray-200 cursor-not-allowed'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  );
-                })}
+                {product.sizes.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setSelectedSize(s)}
+                    className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors"
+                    style={{
+                      border: selectedSize === s ? '2px solid var(--color-primary)' : '2px solid #e5e7eb',
+                      backgroundColor: selectedSize === s ? 'var(--color-bg)' : 'white',
+                      color: selectedSize === s ? 'var(--color-primary)' : 'var(--color-text-light)',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Colors */}
-          {product.colors.length > 0 && (
-            <div className="mb-5">
-              <label className="block text-sm font-semibold mb-2">
-                Color: {(selectedColor || product.colors[0]?.name)}
-                {!product.colorsEditable && <span className="text-text-light font-normal"> (fixed)</span>}
-              </label>
-              <div className="flex flex-wrap gap-3">
-                {product.colors.map(color => {
-                  const isSelected = (selectedColor || product.colors[0]?.name) === color.name;
-                  return (
-                    <button
-                      key={color.hex}
-                      onClick={() => product.colorsEditable && setSelectedColor(color.name)}
-                      disabled={!product.colorsEditable}
-                      title={color.name}
-                      className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected ? 'border-primary scale-110' : 'border-gray-300'
-                      } ${product.colorsEditable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
-                      style={{ backgroundColor: color.hex }}
-                    >
-                      {isSelected && <Check size={16} className={color.hex === '#FFFFFF' || color.hex === '#FFFDD0' || color.hex === '#F5F5DC' ? 'text-black' : 'text-white'} />}
-                    </button>
-                  );
-                })}
+          {/* Color Selector */}
+          {product.colors && product.colors.length > 0 && (
+            <div className="mb-6">
+              <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
+                Color: <span style={{ color: 'var(--color-text-light)' }}>{selectedColor}</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {product.colors.map(c => (
+                  <button
+                    key={c.name}
+                    onClick={() => setSelectedColor(c.name)}
+                    className="w-10 h-10 rounded-full cursor-pointer flex items-center justify-center"
+                    style={{
+                      backgroundColor: c.hex,
+                      border: selectedColor === c.name ? '3px solid var(--color-primary)' : '2px solid #e5e7eb',
+                    }}
+                    title={c.name}
+                  >
+                    {selectedColor === c.name && isLightColor(c.hex) && (
+                      <Check size={16} style={{ color: '#333' }} />
+                    )}
+                    {selectedColor === c.name && !isLightColor(c.hex) && (
+                      <Check size={16} style={{ color: '#fff' }} />
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
           {/* Quantity */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">Quantity</label>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center bg-white cursor-pointer hover:border-primary"
-              >
+            <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Quantity</p>
+            <div className="inline-flex items-center border border-gray-200 rounded-lg">
+              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2.5 cursor-pointer" style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}>
                 <Minus size={16} />
               </button>
-              <span className="w-12 text-center font-semibold">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center bg-white cursor-pointer hover:border-primary"
-              >
+              <span className="px-4 text-sm font-medium" style={{ color: 'var(--color-text)' }}>{quantity}</span>
+              <button onClick={() => setQuantity(quantity + 1)} className="p-2.5 cursor-pointer" style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}>
                 <Plus size={16} />
               </button>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <button onClick={handleAddToCart} className="btn-secondary flex-1 flex items-center justify-center gap-2">
-              {added ? <><Check size={18} /> Added!</> : <><ShoppingCart size={18} /> Add to Cart</>}
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className="btn-secondary flex-1 gap-2"
+              style={added ? { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' } : {}}
+            >
+              {added ? <><Check size={18} /> Added!</> : <><ShoppingBag size={18} /> Add to Cart</>}
             </button>
-            <button onClick={handleOrderNow} className="btn-primary flex-1 flex items-center justify-center gap-2">
+            <button onClick={() => setShowQR(true)} className="btn-primary flex-1 gap-2" disabled={!product.inStock}>
               <MessageCircle size={18} /> Order via WhatsApp
             </button>
           </div>
-
-          {/* QR Code */}
-          {showQR && (
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">Scan to Order on WhatsApp</h3>
-              <p className="text-sm text-text-light mb-4">Scan this QR code with your phone camera</p>
-              <div className="inline-block p-4 bg-white rounded-lg shadow-md">
-                <QRCodeSVG value={whatsappUrl} size={200} />
-              </div>
-              <div className="mt-4">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary font-medium text-sm hover:underline"
-                >
-                  Or click here to open WhatsApp directly
-                </a>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center relative">
+            <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 cursor-pointer" style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}>
+              <X size={20} />
+            </button>
+            <h3 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+              Order via WhatsApp
+            </h3>
+            <p className="text-sm mb-6" style={{ color: 'var(--color-text-light)' }}>
+              Scan the QR code or click the link below
+            </p>
+            <div className="flex justify-center mb-6">
+              <QRCodeSVG value={waUrl} size={200} />
+            </div>
+            <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-primary w-full gap-2">
+              <MessageCircle size={18} /> Open WhatsApp Directly
+            </a>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
 }

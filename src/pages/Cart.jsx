@@ -1,201 +1,194 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Minus, Plus, ShoppingBag, Tag } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import { useCart } from '../context/CartContext';
-import { useProducts } from '../context/ProductContext';
-import { useOrders } from '../context/OrderContext';
-import { usePromos } from '../context/PromoContext';
-import { formatPrice } from '../utils/storage';
-import { buildWhatsAppMessage, getWhatsAppUrl } from '../utils/whatsapp';
-import { storeSettings } from '../data/initialProducts';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Minus, Plus, ShoppingBag, Trash2, MessageCircle, X, Tag } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
+import { useCart } from '../context/CartContext'
+import { usePromos } from '../context/PromoContext'
+import { useOrders } from '../context/OrderContext'
+import { formatPrice, buildWhatsAppUrl, buildCartOrderMessage } from '../utils'
+import { STORE_CONFIG } from '../config'
 
 export default function Cart() {
-  const { items, removeFromCart, updateQuantity, clearCart } = useCart();
-  const { getProduct } = useProducts();
-  const { addOrder } = useOrders();
-  const { validatePromo, usePromo } = usePromos();
-  const navigate = useNavigate();
+  const { cart, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart()
+  const { validatePromo } = usePromos()
+  const { addOrder } = useOrders()
 
-  const liveItems = items.map(item => ({
-    ...item,
-    product: getProduct(item.product.id) || item.product,
-  }));
+  const [promoCode, setPromoCode] = useState('')
+  const [promoResult, setPromoResult] = useState(null)
+  const [discount, setDiscount] = useState(0)
+  const [appliedCode, setAppliedCode] = useState(null)
+  const [showQR, setShowQR] = useState(false)
 
-  const [promoCode, setPromoCode] = useState('');
-  const [promoResult, setPromoResult] = useState(null);
-  const [showQR, setShowQR] = useState(false);
-
-  const subtotal = liveItems.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  const discount = promoResult?.valid ? promoResult.discount : 0;
-  const total = subtotal - discount;
-
-  function handleApplyPromo() {
-    if (!promoCode.trim()) return;
-    const result = validatePromo(promoCode, subtotal);
-    setPromoResult(result);
-  }
-
-  function handleOrder() {
-    if (promoResult?.valid) {
-      usePromo(promoResult.promo.id);
+  const applyPromo = () => {
+    const result = validatePromo(promoCode, cartTotal)
+    setPromoResult(result)
+    if (result.valid) {
+      setDiscount(result.discount)
+      setAppliedCode(promoCode)
+    } else {
+      setDiscount(0)
+      setAppliedCode(null)
     }
-    addOrder(liveItems, total, '', promoResult?.valid ? promoCode : null);
-    setShowQR(true);
   }
 
-  const whatsappMessage = buildWhatsAppMessage(liveItems, total, promoResult?.valid ? promoCode : null, discount);
-  const whatsappUrl = getWhatsAppUrl(storeSettings.whatsappNumber, whatsappMessage);
+  const total = cartTotal - discount
 
-  if (liveItems.length === 0 && !showQR) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
-        <p className="text-text-light mb-6">Looks like you haven't added anything yet</p>
-        <Link to="/shop" className="btn-primary inline-block no-underline">Continue Shopping</Link>
-      </div>
-    );
+  const handleOrder = () => {
+    addOrder(cart, total, '', appliedCode)
+    setShowQR(true)
   }
 
-  if (showQR) {
+  const waMessage = buildCartOrderMessage(cart, total, appliedCode, discount)
+  const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
+
+  if (cart.length === 0 && !showQR) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <div className="bg-white rounded-xl p-8 shadow-md">
-          <h2 className="text-2xl font-bold mb-2">Order Ready!</h2>
-          <p className="text-text-light mb-6">Scan the QR code to complete your order on WhatsApp</p>
-          <div className="inline-block p-4 bg-white rounded-lg shadow-md mb-6">
-            <QRCodeSVG value={whatsappUrl} size={220} />
-          </div>
-          <div className="mb-6">
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center gap-2 no-underline"
-            >
-              Open WhatsApp Directly
-            </a>
-          </div>
-          <p className="text-sm text-text-light mb-4">
-            Total: <strong className="text-primary">{formatPrice(total)}</strong>
-          </p>
-          <button
-            onClick={() => { clearCart(); setShowQR(false); navigate('/shop'); }}
-            className="text-sm text-text-light hover:text-primary bg-transparent border-none cursor-pointer underline"
-          >
-            Clear cart & continue shopping
-          </button>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <ShoppingBag size={48} className="mx-auto mb-4" style={{ color: 'var(--color-text-light)' }} />
+        <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+          Your cart is empty
+        </h1>
+        <p className="mb-6" style={{ color: 'var(--color-text-light)' }}>Looks like you haven't added anything yet.</p>
+        <Link to="/shop" className="btn-primary">Start Shopping</Link>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <h1 className="text-2xl md:text-3xl font-bold mb-8" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+        Shopping Cart
+      </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
-          {liveItems.map((item) => (
-            <div key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}`} className="bg-white rounded-xl p-4 flex gap-4 shadow-sm">
-              <img
-                src={item.product.images[0]}
-                alt={item.product.name}
-                className="w-24 h-24 object-cover rounded-lg shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <Link to={`/product/${item.product.id}`} className="font-semibold text-text hover:text-primary no-underline">
-                  {item.product.name}
-                </Link>
-                <p className="text-sm text-text-light mt-1">
-                  Size: {item.selectedSize} &middot; Color: {item.selectedColor}
-                </p>
-                <p className="text-primary font-bold mt-1">{formatPrice(item.product.price)}</p>
-              </div>
-              <div className="flex flex-col items-end justify-between">
-                <button
-                  onClick={() => removeFromCart(item.product.id, item.selectedSize, item.selectedColor)}
-                  className="text-gray-400 hover:text-red-500 bg-transparent border-none cursor-pointer"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <div className="flex items-center gap-2">
+      {/* Cart Items */}
+      <div className="space-y-4 mb-8">
+        {cart.map((item, idx) => (
+          <div key={idx} className="flex gap-4 p-4 bg-white rounded-xl shadow-sm">
+            <Link to={`/product/${item.product.id}`} className="shrink-0">
+              <img src={item.product.images[0]} alt={item.product.name} className="w-20 h-24 object-cover rounded-lg" />
+            </Link>
+            <div className="flex-1 min-w-0">
+              <Link to={`/product/${item.product.id}`} className="text-sm font-medium no-underline" style={{ color: 'var(--color-text)' }}>
+                {item.product.name}
+              </Link>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-light)' }}>
+                Size: {item.selectedSize} | Color: {item.selectedColor}
+              </p>
+              <p className="text-sm font-semibold mt-1" style={{ color: 'var(--color-primary)' }}>
+                {formatPrice(item.product.price)}
+              </p>
+              <div className="flex items-center justify-between mt-2">
+                <div className="inline-flex items-center border border-gray-200 rounded-lg">
                   <button
                     onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity - 1)}
-                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center bg-white cursor-pointer"
+                    className="p-1.5 cursor-pointer"
+                    style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}
                   >
                     <Minus size={14} />
                   </button>
-                  <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                  <span className="px-3 text-sm">{item.quantity}</span>
                   <button
                     onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity + 1)}
-                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center bg-white cursor-pointer"
+                    className="p-1.5 cursor-pointer"
+                    style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}
                   >
                     <Plus size={14} />
                   </button>
                 </div>
+                <button
+                  onClick={() => removeFromCart(item.product.id, item.selectedSize, item.selectedColor)}
+                  className="p-1.5 cursor-pointer"
+                  style={{ color: '#ef4444', background: 'none', border: 'none' }}
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Summary */}
-        <div className="bg-white rounded-xl p-6 shadow-sm h-fit sticky top-24">
-          <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
-
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between text-sm">
-              <span className="text-text-light">Subtotal ({liveItems.reduce((s, i) => s + i.quantity, 0)} items)</span>
-              <span>{formatPrice(subtotal)}</span>
-            </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
-                <span>Discount ({promoCode})</span>
-                <span>-{formatPrice(discount)}</span>
-              </div>
-            )}
-            <div className="border-t pt-3 flex justify-between font-bold">
-              <span>Total</span>
-              <span className="text-primary">{formatPrice(total)}</span>
             </div>
           </div>
-
-          {/* Promo Code */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Promo Code</label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={e => { setPromoCode(e.target.value); setPromoResult(null); }}
-                  placeholder="Enter code"
-                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm"
-                />
-              </div>
-              <button onClick={handleApplyPromo} className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-gray-200 border-none cursor-pointer">
-                Apply
-              </button>
-            </div>
-            {promoResult && (
-              <p className={`text-xs mt-1 ${promoResult.valid ? 'text-green-600' : 'text-red-500'}`}>
-                {promoResult.valid ? `Discount applied: -${formatPrice(promoResult.discount)}` : promoResult.message}
-              </p>
-            )}
-          </div>
-
-          <button onClick={handleOrder} className="btn-primary w-full text-center">
-            Order via WhatsApp
-          </button>
-
-          <Link to="/shop" className="block text-center text-sm text-text-light hover:text-primary mt-4 no-underline">
-            Continue Shopping
-          </Link>
-        </div>
+        ))}
       </div>
+
+      {/* Promo Code */}
+      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Tag size={18} style={{ color: 'var(--color-primary)' }} />
+          <span className="font-medium text-sm" style={{ color: 'var(--color-text)' }}>Promo Code</span>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Enter promo code"
+            value={promoCode}
+            onChange={e => setPromoCode(e.target.value)}
+            className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-pink-400 focus:outline-none text-sm"
+            style={{ fontFamily: 'var(--font-body)' }}
+          />
+          <button onClick={applyPromo} className="btn-primary text-sm px-4 py-2">Apply</button>
+        </div>
+        {promoResult && (
+          <p className="text-sm mt-2" style={{ color: promoResult.valid ? '#22c55e' : '#ef4444' }}>
+            {promoResult.message}
+          </p>
+        )}
+      </div>
+
+      {/* Order Summary */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <h3 className="font-semibold mb-4" style={{ color: 'var(--color-text)' }}>Order Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between" style={{ color: 'var(--color-text-light)' }}>
+            <span>Subtotal</span>
+            <span>{formatPrice(cartTotal)}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between" style={{ color: '#22c55e' }}>
+              <span>Discount ({appliedCode})</span>
+              <span>-{formatPrice(discount)}</span>
+            </div>
+          )}
+          <div className="border-t pt-3 mt-3 flex justify-between font-bold text-lg" style={{ color: 'var(--color-text)' }}>
+            <span>Total</span>
+            <span style={{ color: 'var(--color-primary)' }}>{formatPrice(total)}</span>
+          </div>
+        </div>
+
+        <button onClick={handleOrder} className="btn-primary w-full mt-6 gap-2">
+          <MessageCircle size={18} /> Order via WhatsApp
+        </button>
+        <Link to="/shop" className="block mt-3 text-center text-sm no-underline" style={{ color: 'var(--color-text-light)' }}>
+          Continue Shopping
+        </Link>
+      </div>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center relative">
+            <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 cursor-pointer" style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}>
+              <X size={20} />
+            </button>
+            <h3 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+              Order Placed!
+            </h3>
+            <p className="text-sm mb-6" style={{ color: 'var(--color-text-light)' }}>
+              Scan the QR code or click below to complete your order on WhatsApp
+            </p>
+            <div className="flex justify-center mb-6">
+              <QRCodeSVG value={waUrl} size={200} />
+            </div>
+            <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-primary w-full gap-2 mb-4">
+              <MessageCircle size={18} /> Open WhatsApp Directly
+            </a>
+            <button
+              onClick={() => { clearCart(); setShowQR(false); setDiscount(0); setAppliedCode(null); setPromoCode(''); setPromoResult(null) }}
+              className="text-sm cursor-pointer no-underline"
+              style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}
+            >
+              Clear cart & continue shopping
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
 }

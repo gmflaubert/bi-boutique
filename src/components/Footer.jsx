@@ -1,59 +1,60 @@
-import { Link } from 'react-router-dom';
-import { AtSign, Mail, MapPin, Phone } from 'lucide-react';
-import { storeSettings } from '../data/initialProducts';
+import { Link } from 'react-router-dom'
+import { Mail, MapPin, Phone, MessageCircle } from 'lucide-react'
+import { STORE_CONFIG } from '../config'
+
+function InstagramIcon({ size = 24 }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.51"/>
+    </svg>
+  )
+}
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
+    <footer style={{ backgroundColor: '#1a1a2e', color: '#d1d5db' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/logo.jpg" alt="B&I Boutique" className="h-12 w-auto rounded" />
+              <img src="/logo.jpg" alt={STORE_CONFIG.storeName} className="h-10 w-10 rounded-full object-cover" />
               <div>
-                <h3 className="text-white text-lg m-0">B&I Boutique</h3>
-                <p className="text-accent text-sm m-0">{storeSettings.tagline}</p>
+                <h3 className="text-white font-semibold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>{STORE_CONFIG.storeName}</h3>
+                <p className="text-xs" style={{ color: 'var(--color-accent)', fontStyle: 'italic' }}>{STORE_CONFIG.tagline}</p>
               </div>
             </div>
             <p className="text-sm leading-relaxed">
-              Your destination for elegant and classy fashion. We bring you the finest selection
-              of clothing and accessories curated with love.
+              Your destination for curated fashion that blends elegance with modern style.
+              Every piece is handpicked to make you feel confident and beautiful.
             </p>
           </div>
 
           <div>
-            <h3 className="text-white text-lg mb-4">Quick Links</h3>
-            <div className="flex flex-col gap-2">
-              <Link to="/" className="text-gray-300 hover:text-primary transition-colors text-sm no-underline">Home</Link>
-              <Link to="/shop" className="text-gray-300 hover:text-primary transition-colors text-sm no-underline">Shop</Link>
-              <Link to="/about" className="text-gray-300 hover:text-primary transition-colors text-sm no-underline">About Us</Link>
-              <Link to="/contact" className="text-gray-300 hover:text-primary transition-colors text-sm no-underline">Contact</Link>
-            </div>
+            <h4 className="text-white font-semibold mb-3" style={{ fontFamily: 'var(--font-heading)' }}>Quick Links</h4>
+            <ul className="space-y-2 text-sm list-none p-0">
+              <li><Link to="/" className="hover:text-white transition-colors no-underline" style={{ color: '#d1d5db' }}>Home</Link></li>
+              <li><Link to="/shop" className="hover:text-white transition-colors no-underline" style={{ color: '#d1d5db' }}>Shop</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors no-underline" style={{ color: '#d1d5db' }}>About Us</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors no-underline" style={{ color: '#d1d5db' }}>Contact</Link></li>
+            </ul>
           </div>
 
           <div>
-            <h3 className="text-white text-lg mb-4">Contact Us</h3>
-            <div className="flex flex-col gap-3">
-              <a href={`tel:+${storeSettings.whatsappNumber}`} className="flex items-center gap-2 text-sm text-gray-300 hover:text-primary transition-colors no-underline">
-                <Phone size={16} /> +{storeSettings.whatsappNumber}
-              </a>
-              <a href={`mailto:${storeSettings.email}`} className="flex items-center gap-2 text-sm text-gray-300 hover:text-primary transition-colors no-underline">
-                <Mail size={16} /> {storeSettings.email}
-              </a>
-              <span className="flex items-center gap-2 text-sm">
-                <MapPin size={16} /> {storeSettings.address}
-              </span>
-              <span className="flex items-center gap-2 text-sm">
-                <AtSign size={16} /> {storeSettings.instagram}
-              </span>
-            </div>
+            <h4 className="text-white font-semibold mb-3" style={{ fontFamily: 'var(--font-heading)' }}>Contact Us</h4>
+            <ul className="space-y-2 text-sm list-none p-0">
+              <li className="flex items-center gap-2"><Phone size={16} /> +250 780 000 000</li>
+              <li className="flex items-center gap-2"><MessageCircle size={16} /> WhatsApp</li>
+              <li className="flex items-center gap-2"><Mail size={16} /> {STORE_CONFIG.email}</li>
+              <li className="flex items-center gap-2"><MapPin size={16} /> {STORE_CONFIG.address}</li>
+              <li className="flex items-center gap-2"><InstagramIcon size={16} /> {STORE_CONFIG.instagram}</li>
+            </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm">
-          <p className="m-0">&copy; {new Date().getFullYear()} B&I Boutique. All rights reserved.</p>
+        <div className="border-t border-gray-700 mt-10 pt-6 text-center text-xs text-gray-500">
+          &copy; {new Date().getFullYear()} {STORE_CONFIG.storeName}. All rights reserved.
         </div>
       </div>
     </footer>
-  );
+  )
 }

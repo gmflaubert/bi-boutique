@@ -1,25 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #E84D8A;
-  --color-primary-dark: #C93A73;
-  --color-primary-light: #F5A3C7;
-  --color-accent: #6BC5D2;
-  --color-accent-dark: #4BA8B5;
-  --color-bg: #FDF2F8;
-  --color-bg-alt: #FFFFFF;
-  --color-text: #1F2937;
-  --color-text-light: #6B7280;
-  --color-surface: #FFFFFF;
-  --font-heading: 'Playfair Display', serif;
-  --font-body: 'Inter', sans-serif;
+  --color-primary: #e84d8a;
+  --color-primary-dark: #c93a73;
+  --color-primary-light: #f5a3c7;
+  --color-accent: #6bc5d2;
+  --color-accent-dark: #4ba8b5;
+  --color-bg: #fdf2f8;
+  --color-text: #1f2937;
+  --color-text-light: #6b7280;
+  --color-surface: #fff;
+  --font-heading: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   color: var(--color-text);
   background-color: var(--color-bg);
-  margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -27,21 +32,76 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  @apply bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors duration-200 cursor-pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-body);
+  text-decoration: none;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(232, 77, 138, 0.3);
 }
 
 .btn-secondary {
-  @apply border-2 border-primary text-primary px-6 py-3 rounded-lg font-medium hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  background-color: white;
+  color: var(--color-primary);
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 2px solid var(--color-primary);
+  transition: all 0.2s;
+  cursor: pointer;
+  font-family: var(--font-body);
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  background-color: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
 }
 
 .btn-accent {
-  @apply bg-accent text-white px-6 py-3 rounded-lg font-medium hover:bg-accent-dark transition-colors duration-200 cursor-pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  background-color: var(--color-accent);
+  color: white;
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-body);
+  text-decoration: none;
+}
+.btn-accent:hover {
+  background-color: var(--color-accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 197, 210, 0.3);
 }
 
 .card {
-  @apply bg-surface rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1;
+  background-color: var(--color-surface);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: all 0.3s;
 }
-
-input:focus, select:focus, textarea:focus {
-  @apply outline-none ring-2 ring-primary/50;
+.card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
 }

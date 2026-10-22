@@ -1,80 +1,47 @@
-import { createContext, useContext, useState } from 'react';
-import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
+import { createContext, useContext, useState } from 'react'
+import { readStorage, writeStorage, generateId } from '../utils'
+import { DEFAULT_PROMOS } from '../data/products'
 
-const PromoContext = createContext();
-
-const initialPromos = [
-  {
-    id: '1',
-    code: 'WELCOME10',
-    type: 'percentage',
-    value: 10,
-    active: true,
-    minPurchase: 20000,
-    expiresAt: '2027-12-31',
-    usageCount: 0,
-  },
-  {
-    id: '2',
-    code: 'SAVE5000',
-    type: 'fixed',
-    value: 5000,
-    active: true,
-    minPurchase: 30000,
-    expiresAt: null,
-    usageCount: 0,
-  },
-];
+const PromoContext = createContext()
 
 export function PromoProvider({ children }) {
-  const [promos, setPromos] = useState(() => loadFromStorage('bi_promos', initialPromos));
-
-  function persist(updated) {
-    setPromos(updated);
-    saveToStorage('bi_promos', updated);
-  }
+  const [promos, setPromos] = useState(() => readStorage('bi_promos', DEFAULT_PROMOS))
 
   function addPromo(promo) {
-    const newPromo = { ...promo, id: generateId(), usageCount: 0 };
-    persist([...promos, newPromo]);
-    return newPromo;
+    const newPromo = { ...promo, id: generateId() }
+    const updated = [...promos, newPromo]
+    setPromos(updated)
+    writeStorage('bi_promos', updated)
   }
 
-  function updatePromo(id, updates) {
-    persist(promos.map(p => p.id === id ? { ...p, ...updates } : p));
+  function updatePromo(id, data) {
+    const updated = promos.map(p => p.id === id ? { ...p, ...data } : p)
+    setPromos(updated)
+    writeStorage('bi_promos', updated)
   }
 
   function deletePromo(id) {
-    persist(promos.filter(p => p.id !== id));
+    const updated = promos.filter(p => p.id !== id)
+    setPromos(updated)
+    writeStorage('bi_promos', updated)
   }
 
-  function validatePromo(code, total) {
-    const promo = promos.find(p => p.code.toUpperCase() === code.toUpperCase() && p.active);
-    if (!promo) return { valid: false, message: 'Invalid promo code' };
-    if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
-      return { valid: false, message: 'This promo code has expired' };
-    }
-    if (total < promo.minPurchase) {
-      return { valid: false, message: `Minimum purchase of RWF ${promo.minPurchase.toLocaleString()} required` };
-    }
-    const raw = promo.type === 'percentage'
-      ? Math.round(total * promo.value / 100)
-      : promo.value;
-    const discount = Math.min(raw, total);
-    return { valid: true, discount, promo };
-  }
-
-  function usePromo(id) {
-    persist(promos.map(p => p.id === id ? { ...p, usageCount: p.usageCount + 1 } : p));
+  function validatePromo(code, subtotal) {
+    const promo = promos.find(p => p.code.toUpperCase() === code.toUpperCase() && p.active)
+    if (!promo) return { valid: false, message: "Invalid promo code" }
+    if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) return { valid: false, message: "Promo code has expired" }
+    if (subtotal < promo.minPurchase) return { valid: false, message: `Minimum purchase of RWF ${promo.minPurchase.toLocaleString()} required` }
+    const discount = promo.type === "percentage" ? Math.round(subtotal * promo.value / 100) : promo.value
+    return { valid: true, discount, promo, message: `Promo applied! You save RWF ${discount.toLocaleString()}` }
   }
 
   return (
-    <PromoContext.Provider value={{ promos, addPromo, updatePromo, deletePromo, validatePromo, usePromo }}>
+    <PromoContext.Provider value={{ promos, addPromo, updatePromo, deletePromo, validatePromo }}>
       {children}
     </PromoContext.Provider>
-  );
+  )
 }
 
 export function usePromos() {
-  return useContext(PromoContext);
+  return useContext(PromoContext)
 }
