@@ -219,7 +219,17 @@ export default function Cart() {
               Scan the QR code or click below to complete your order on WhatsApp
             </p>
             <div className="flex justify-center mb-6">
-              <QRCodeSVG value={waUrl} size={200} />
+              <QRCodeSVG
+                value={waUrl}
+                size={200}
+                level="H"
+                imageSettings={{
+                  src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23E2527A'%3E%3Cpath d='M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.16 14.26l.04-.12L8.1 12h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 3H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.44C4.52 14.37 5.48 16 7 16h12v-2H7.42a.25.25 0 0 1-.26-.24z'/%3E%3C/svg%3E",
+                  width: 40,
+                  height: 40,
+                  excavate: true,
+                }}
+              />
             </div>
             <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-primary w-full gap-2 mb-4">
               <MessageCircle size={18} /> Open WhatsApp Directly
