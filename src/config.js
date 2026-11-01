@@ -1,5 +1,5 @@
 export const STORE_CONFIG = {
-  whatsappNumber: "250780000000",
+  whatsappNumber: "250788975846",
   storeName: "B&I Boutique",
   tagline: "Elegance, Always Classy",
   currency: "RWF",

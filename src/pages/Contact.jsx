@@ -25,8 +25,8 @@ export default function Contact() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {[
-              { icon: Phone, label: 'Phone', value: '+250 780 000 000' },
-              { icon: MessageCircle, label: 'WhatsApp', value: '+250 780 000 000' },
+              { icon: Phone, label: 'Phone', value: '+250 788 975 846' },
+              { icon: MessageCircle, label: 'WhatsApp', value: '+250 788 975 846' },
               { icon: Mail, label: 'Email', value: STORE_CONFIG.email },
               { icon: InstagramIcon, label: 'Instagram', value: STORE_CONFIG.instagram },
             ].map(item => (

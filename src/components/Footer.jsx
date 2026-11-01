@@ -42,7 +42,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3" style={{ fontFamily: 'var(--font-heading)' }}>Contact Us</h4>
             <ul className="space-y-2 text-sm list-none p-0">
-              <li className="flex items-center gap-2"><Phone size={16} /> +250 780 000 000</li>
+              <li className="flex items-center gap-2"><Phone size={16} /> +250 788 975 846</li>
               <li className="flex items-center gap-2"><MessageCircle size={16} /> WhatsApp</li>
               <li className="flex items-center gap-2"><Mail size={16} /> {STORE_CONFIG.email}</li>
               <li className="flex items-center gap-2"><MapPin size={16} /> {STORE_CONFIG.address}</li>
