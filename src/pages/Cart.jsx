@@ -52,7 +52,7 @@ export default function Cart() {
 
   const waMessage = buildCartOrderMessage(cart, total, appliedCode, discount, location)
   const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
-  const waQrUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}`
+  const waQrUrl = waUrl
 
   if (cart.length === 0 && !showQR) {
     return (

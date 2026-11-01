@@ -40,7 +40,7 @@ export default function ProductDetail() {
 
   const waMessage = buildProductOrderMessage(product, selectedSize, selectedColor, quantity, location)
   const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
-  const waQrUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}`
+  const waQrUrl = waUrl
 
   const isLightColor = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16)
