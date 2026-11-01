@@ -14,6 +14,7 @@ import Dashboard from './pages/admin/Dashboard'
 import AdminProducts from './pages/admin/Products'
 import AdminOrders from './pages/admin/Orders'
 import AdminPromos from './pages/admin/Promos'
+import NotFound from './pages/NotFound'
 import { useAuth } from './context/AuthContext'
 import { Navigate } from 'react-router-dom'
 
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="promos" element={<AdminPromos />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       {!isAdmin && <Footer />}

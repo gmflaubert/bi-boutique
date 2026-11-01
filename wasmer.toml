@@ -1,0 +1,22 @@
+[package]
+name = "bi-boutique"
+version = "0.1.0"
+description = "B&I Boutique — Fashion e-commerce"
+
+[[module]]
+name = "static-web-server"
+source = "registry:static-web-server/static-web-server"
+
+[module.bindings]
+wasi = {}
+
+[[command]]
+name = "script"
+module = "static-web-server"
+
+[command.annotations.wasi]
+main-args = ["-p", "8080", "-d", "/app", "--page-fallback", "/app/index.html"]
+
+[[fs]]
+mapping = "/app"
+source = "dist"
