@@ -38,7 +38,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>
       <ScrollToTop />
       {!isAdmin && <Navbar />}
-      <main className="flex-1">
+      <main key={location.pathname} className="flex-1 page-enter">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />

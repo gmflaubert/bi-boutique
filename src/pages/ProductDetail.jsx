@@ -219,8 +219,8 @@ export default function ProductDetail() {
 
       {/* QR Code Modal */}
       {showQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center relative">
+        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="modal-content bg-white rounded-2xl p-8 max-w-sm w-full text-center relative">
             <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 cursor-pointer" style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}>
               <X size={20} />
             </button>

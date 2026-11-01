@@ -51,7 +51,7 @@ export default function Navbar() {
           <Link to="/cart" className="relative no-underline" style={{ color: 'var(--color-text)' }}>
             <ShoppingBag size={22} />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold" style={{ backgroundColor: 'var(--color-primary)' }}>
+              <span key={cartCount} className="badge-pop absolute -top-2 -right-2 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold" style={{ backgroundColor: 'var(--color-primary)' }}>
                 {cartCount}
               </span>
             )}
@@ -76,7 +76,7 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t shadow-lg">
+        <div className="mobile-menu-enter md:hidden bg-white border-t shadow-lg">
           <div className="px-4 py-3 space-y-1">
             {links.map(link => (
               <Link

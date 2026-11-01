@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
+import AnimateIn from '../components/AnimateIn'
 import { useProducts } from '../context/ProductContext'
 import { CATEGORIES } from '../config'
 
@@ -106,7 +107,11 @@ export default function Shop() {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {paginated.map(p => <ProductCard key={p.id} product={p} />)}
+        {paginated.map((p, i) => (
+          <AnimateIn key={p.id} animation="product-card-enter" delay={i * 80}>
+            <ProductCard product={p} />
+          </AnimateIn>
+        ))}
       </div>
 
       {filtered.length === 0 && (

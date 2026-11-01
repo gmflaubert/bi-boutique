@@ -105,3 +105,82 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 8px 25px rgba(0,0,0,0.1);
   transform: translateY(-4px);
 }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes popIn {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.anim-fade-up {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.anim-fade-up.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.anim-fade-in {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+.anim-fade-in.in-view {
+  opacity: 1;
+}
+
+.anim-scale-in {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.anim-scale-in.in-view {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-enter { animation: fadeUp 0.8s ease-out both; }
+.hero-enter-delay-1 { animation: fadeUp 0.8s ease-out 0.15s both; }
+.hero-enter-delay-2 { animation: fadeUp 0.8s ease-out 0.3s both; }
+.hero-enter-delay-3 { animation: fadeUp 0.8s ease-out 0.45s both; }
+
+.mobile-menu-enter { animation: slideDown 0.25s ease-out both; }
+
+.badge-pop { animation: popIn 0.3s ease-out; }
+
+.page-enter { animation: fadeIn 0.35s ease-out both; }
+
+.product-card-enter {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.product-card-enter.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.modal-overlay { animation: fadeIn 0.2s ease-out both; }
+.modal-content { animation: scaleIn 0.3s ease-out both; }
