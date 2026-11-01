@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from '../context/ProductContext'
 import { CATEGORIES } from '../config'
@@ -10,6 +10,8 @@ export default function Shop() {
   const [params, setParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('newest')
+  const [page, setPage] = useState(1)
+  const perPage = 8
 
   const activeCategory = params.get('category') || 'All'
 
@@ -30,6 +32,15 @@ export default function Shop() {
     }
   }, [products, activeCategory, search, sort])
 
+  const totalPages = Math.ceil(filtered.length / perPage)
+  const safeePage = Math.min(page, totalPages || 1)
+  const paginated = filtered.slice((safeePage - 1) * perPage, safeePage * perPage)
+
+  const changePage = (p) => {
+    setPage(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
@@ -48,14 +59,14 @@ export default function Shop() {
             type="text"
             placeholder="Search products..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
             className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 focus:border-pink-400 focus:outline-none transition"
             style={{ fontFamily: 'var(--font-body)' }}
           />
         </div>
         <select
           value={sort}
-          onChange={e => setSort(e.target.value)}
+          onChange={e => { setSort(e.target.value); setPage(1) }}
           className="px-4 py-2.5 rounded-full border border-gray-200 focus:border-pink-400 focus:outline-none bg-white cursor-pointer"
           style={{ fontFamily: 'var(--font-body)' }}
         >
@@ -74,6 +85,7 @@ export default function Shop() {
             onClick={() => {
               if (cat === 'All') setParams({})
               else setParams({ category: cat })
+              setPage(1)
             }}
             className="px-5 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border-none"
             style={{
@@ -94,13 +106,57 @@ export default function Shop() {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filtered.map(p => <ProductCard key={p.id} product={p} />)}
+        {paginated.map(p => <ProductCard key={p.id} product={p} />)}
       </div>
 
       {filtered.length === 0 && (
         <p className="text-center py-20" style={{ color: 'var(--color-text-light)' }}>
           No products found. Try a different search or category.
         </p>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-10">
+          <button
+            onClick={() => changePage(safeePage - 1)}
+            disabled={safeePage <= 1}
+            className="p-2 rounded-lg cursor-pointer border-none"
+            style={{
+              background: safeePage <= 1 ? 'transparent' : 'white',
+              color: safeePage <= 1 ? '#d1d5db' : 'var(--color-text)',
+              cursor: safeePage <= 1 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => changePage(p)}
+              className="w-10 h-10 rounded-lg text-sm font-medium cursor-pointer border-none"
+              style={{
+                backgroundColor: p === safeePage ? 'var(--color-primary)' : 'white',
+                color: p === safeePage ? 'white' : 'var(--color-text-light)',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            onClick={() => changePage(safeePage + 1)}
+            disabled={safeePage >= totalPages}
+            className="p-2 rounded-lg cursor-pointer border-none"
+            style={{
+              background: safeePage >= totalPages ? 'transparent' : 'white',
+              color: safeePage >= totalPages ? '#d1d5db' : 'var(--color-text)',
+              cursor: safeePage >= totalPages ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
       )}
     </div>
   )

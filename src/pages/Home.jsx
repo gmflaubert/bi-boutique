@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Truck, Shield, Sparkles, Tag } from 'lucide-react'
+import { ArrowRight, Truck, Shield, Sparkles, Tag, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from '../context/ProductContext'
 import { usePromos } from '../context/PromoContext'
@@ -10,9 +11,17 @@ export default function Home() {
   const { products } = useProducts()
   const { promos } = usePromos()
 
-  const featured = products.filter(p => p.featured).slice(0, 4)
-  const onSale = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
+  const featured = products.filter(p => p.featured)
+  const onSale = products.filter(p => p.originalPrice && p.originalPrice > p.price)
   const activePromos = promos.filter(p => p.active && (!p.expiresAt || new Date(p.expiresAt) >= new Date()))
+
+  const perPage = 4
+  const [featuredPage, setFeaturedPage] = useState(0)
+  const [dealsPage, setDealsPage] = useState(0)
+  const featuredTotal = Math.ceil(featured.length / perPage)
+  const dealsTotal = Math.ceil(onSale.length / perPage)
+  const featuredSlice = featured.slice(featuredPage * perPage, (featuredPage + 1) * perPage)
+  const dealsSlice = onSale.slice(dealsPage * perPage, (dealsPage + 1) * perPage)
 
   return (
     <>
@@ -97,12 +106,35 @@ export default function Home() {
                 </h2>
                 <p className="text-sm mt-1" style={{ color: 'var(--color-text-light)' }}>Don't miss out on these special prices</p>
               </div>
-              <Link to="/shop" className="text-sm font-medium flex items-center gap-1 no-underline" style={{ color: 'var(--color-primary)' }}>
-                View All <ArrowRight size={16} />
-              </Link>
+              <div className="flex items-center gap-3">
+                {dealsTotal > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setDealsPage(p => Math.max(0, p - 1))}
+                      disabled={dealsPage === 0}
+                      className="p-1.5 rounded-full border-none cursor-pointer"
+                      style={{ background: dealsPage === 0 ? 'transparent' : 'white', color: dealsPage === 0 ? '#d1d5db' : 'var(--color-text)', cursor: dealsPage === 0 ? 'not-allowed' : 'pointer' }}
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <span className="text-xs font-medium" style={{ color: 'var(--color-text-light)' }}>{dealsPage + 1}/{dealsTotal}</span>
+                    <button
+                      onClick={() => setDealsPage(p => Math.min(dealsTotal - 1, p + 1))}
+                      disabled={dealsPage >= dealsTotal - 1}
+                      className="p-1.5 rounded-full border-none cursor-pointer"
+                      style={{ background: dealsPage >= dealsTotal - 1 ? 'transparent' : 'white', color: dealsPage >= dealsTotal - 1 ? '#d1d5db' : 'var(--color-text)', cursor: dealsPage >= dealsTotal - 1 ? 'not-allowed' : 'pointer' }}
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                )}
+                <Link to="/shop" className="text-sm font-medium flex items-center gap-1 no-underline" style={{ color: 'var(--color-primary)' }}>
+                  View All <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {onSale.map(p => <ProductCard key={p.id} product={p} />)}
+              {dealsSlice.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>
         </section>
@@ -138,12 +170,35 @@ export default function Home() {
             <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
               Featured Products
             </h2>
-            <Link to="/shop" className="text-sm font-medium flex items-center gap-1 no-underline" style={{ color: 'var(--color-primary)' }}>
-              View All <ArrowRight size={16} />
-            </Link>
+            <div className="flex items-center gap-3">
+              {featuredTotal > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setFeaturedPage(p => Math.max(0, p - 1))}
+                    disabled={featuredPage === 0}
+                    className="p-1.5 rounded-full border-none cursor-pointer"
+                    style={{ background: featuredPage === 0 ? 'transparent' : 'white', color: featuredPage === 0 ? '#d1d5db' : 'var(--color-text)', cursor: featuredPage === 0 ? 'not-allowed' : 'pointer' }}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-light)' }}>{featuredPage + 1}/{featuredTotal}</span>
+                  <button
+                    onClick={() => setFeaturedPage(p => Math.min(featuredTotal - 1, p + 1))}
+                    disabled={featuredPage >= featuredTotal - 1}
+                    className="p-1.5 rounded-full border-none cursor-pointer"
+                    style={{ background: featuredPage >= featuredTotal - 1 ? 'transparent' : 'white', color: featuredPage >= featuredTotal - 1 ? '#d1d5db' : 'var(--color-text)', cursor: featuredPage >= featuredTotal - 1 ? 'not-allowed' : 'pointer' }}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+              <Link to="/shop" className="text-sm font-medium flex items-center gap-1 no-underline" style={{ color: 'var(--color-primary)' }}>
+                View All <ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {featured.map(p => <ProductCard key={p.id} product={p} />)}
+            {featuredSlice.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>
