@@ -15,8 +15,12 @@ name = "script"
 module = "static-web-server"
 
 [command.annotations.wasi]
-main-args = ["-p", "8080", "-d", "/app", "--page-fallback", "/app/index.html"]
+main-args = ["-p", "8080", "-d", "/app", "-w", "/settings/config.toml"]
 
 [[fs]]
 mapping = "/app"
 source = "dist"
+
+[[fs]]
+mapping = "/settings"
+source = "settings"
