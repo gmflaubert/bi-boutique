@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone, MessageCircle, Search, ShoppingBag, CreditCard, Package, CheckCircle } from 'lucide-react'
+import { Mail, Phone, MessageCircle, Search, ShoppingBag, CreditCard, Package } from 'lucide-react'
 import { STORE_CONFIG } from '../config'
 
 function InstagramIcon({ size = 24 }) {

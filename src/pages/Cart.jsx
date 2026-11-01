@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Minus, Plus, ShoppingBag, Trash2, MessageCircle, X, Tag } from 'lucide-react'
+import { Minus, Plus, ShoppingBag, Trash2, MessageCircle, X, Tag, MapPin } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useCart } from '../context/CartContext'
 import { usePromos } from '../context/PromoContext'
 import { useOrders } from '../context/OrderContext'
-import { formatPrice, buildWhatsAppUrl, buildCartOrderMessage } from '../utils'
+import { formatPrice, buildWhatsAppUrl, buildCartOrderMessage, isPromoUsed, markPromoUsed } from '../utils'
 import { STORE_CONFIG } from '../config'
 
 export default function Cart() {
@@ -17,9 +17,17 @@ export default function Cart() {
   const [promoResult, setPromoResult] = useState(null)
   const [discount, setDiscount] = useState(0)
   const [appliedCode, setAppliedCode] = useState(null)
+  const [location, setLocation] = useState('')
   const [showQR, setShowQR] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const applyPromo = () => {
+    if (isPromoUsed(promoCode)) {
+      setPromoResult({ valid: false, message: "You have already used this promo code" })
+      setDiscount(0)
+      setAppliedCode(null)
+      return
+    }
     const result = validatePromo(promoCode, cartTotal)
     setPromoResult(result)
     if (result.valid) {
@@ -31,14 +39,18 @@ export default function Cart() {
     }
   }
 
-  const total = cartTotal - discount
+  const total = Math.max(0, cartTotal - discount)
 
-  const handleOrder = () => {
-    addOrder(cart, total, '', appliedCode)
+  const handleOrder = async () => {
+    if (submitting) return
+    setSubmitting(true)
+    await addOrder(cart, total, '', appliedCode, location)
+    if (appliedCode) markPromoUsed(appliedCode)
+    setSubmitting(false)
     setShowQR(true)
   }
 
-  const waMessage = buildCartOrderMessage(cart, total, appliedCode, discount)
+  const waMessage = buildCartOrderMessage(cart, total, appliedCode, discount, location)
   const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
 
   if (cart.length === 0 && !showQR) {
@@ -123,13 +135,36 @@ export default function Cart() {
             className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-pink-400 focus:outline-none text-sm"
             style={{ fontFamily: 'var(--font-body)' }}
           />
-          <button onClick={applyPromo} className="btn-primary text-sm px-4 py-2">Apply</button>
+          <button
+            onClick={applyPromo}
+            disabled={!promoCode.trim()}
+            className="btn-primary text-sm px-4 py-2"
+            style={!promoCode.trim() ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+          >
+            Apply
+          </button>
         </div>
         {promoResult && (
           <p className="text-sm mt-2" style={{ color: promoResult.valid ? '#22c55e' : '#ef4444' }}>
             {promoResult.message}
           </p>
         )}
+      </div>
+
+      {/* Delivery Location */}
+      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin size={18} style={{ color: 'var(--color-primary)' }} />
+          <span className="font-medium text-sm" style={{ color: 'var(--color-text)' }}>Delivery Location</span>
+        </div>
+        <input
+          type="text"
+          placeholder="Enter your delivery address"
+          value={location}
+          onChange={e => setLocation(e.target.value)}
+          className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-pink-400 focus:outline-none text-sm"
+          style={{ fontFamily: 'var(--font-body)' }}
+        />
       </div>
 
       {/* Order Summary */}
@@ -152,9 +187,19 @@ export default function Cart() {
           </div>
         </div>
 
-        <button onClick={handleOrder} className="btn-primary w-full mt-6 gap-2">
-          <MessageCircle size={18} /> Order via WhatsApp
+        <button
+          onClick={handleOrder}
+          disabled={!location.trim() || submitting}
+          className="btn-primary w-full mt-6 gap-2"
+          style={!location.trim() || submitting ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        >
+          <MessageCircle size={18} /> {submitting ? 'Placing Order…' : 'Order via WhatsApp'}
         </button>
+        {!location.trim() && (
+          <p className="text-xs text-center mt-2" style={{ color: 'var(--color-text-light)' }}>
+            Please enter your delivery location to place the order
+          </p>
+        )}
         <Link to="/shop" className="block mt-3 text-center text-sm no-underline" style={{ color: 'var(--color-text-light)' }}>
           Continue Shopping
         </Link>
@@ -180,7 +225,7 @@ export default function Cart() {
               <MessageCircle size={18} /> Open WhatsApp Directly
             </a>
             <button
-              onClick={() => { clearCart(); setShowQR(false); setDiscount(0); setAppliedCode(null); setPromoCode(''); setPromoResult(null) }}
+              onClick={() => { clearCart(); setShowQR(false); setDiscount(0); setAppliedCode(null); setPromoCode(''); setPromoResult(null); setLocation('') }}
               className="text-sm cursor-pointer no-underline"
               style={{ color: 'var(--color-text-light)', background: 'none', border: 'none' }}
             >

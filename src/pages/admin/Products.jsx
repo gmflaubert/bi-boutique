@@ -31,7 +31,10 @@ export default function AdminProducts() {
     setEditing(p.id)
   }
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
     const data = {
       ...form,
       price: Number(form.price),
@@ -41,10 +44,11 @@ export default function AdminProducts() {
       colors: form.colors.filter(c => c.name),
     }
     if (editing === 'new') {
-      addProduct(data)
+      await addProduct(data)
     } else {
-      updateProduct(editing, data)
+      await updateProduct(editing, data)
     }
+    setSaving(false)
     setEditing(null)
   }
 
@@ -195,7 +199,7 @@ export default function AdminProducts() {
 
             <div className="flex gap-3 mt-6">
               <button onClick={() => setEditing(null)} className="btn-secondary flex-1 text-sm">Cancel</button>
-              <button onClick={handleSave} className="btn-primary flex-1 text-sm">Save Product</button>
+              <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 text-sm">{saving ? 'Saving…' : 'Save Product'}</button>
             </div>
           </div>
         </div>

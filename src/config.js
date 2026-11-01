@@ -8,9 +8,4 @@ export const STORE_CONFIG = {
   instagram: "@biboutique",
 }
 
-export const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "admin123",
-}
-
 export const CATEGORIES = ["All", "Dresses", "Tops", "Pants", "Jackets", "Accessories"]

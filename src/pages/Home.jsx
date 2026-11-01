@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Truck, Shield, Sparkles } from 'lucide-react'
+import { ArrowRight, Truck, Shield, Sparkles, Tag } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from '../context/ProductContext'
+import { usePromos } from '../context/PromoContext'
 import { CATEGORIES } from '../config'
+import { formatPrice } from '../utils'
 
 export default function Home() {
   const { products } = useProducts()
+  const { promos } = usePromos()
+
   const featured = products.filter(p => p.featured).slice(0, 4)
+  const onSale = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
+  const activePromos = promos.filter(p => p.active && (!p.expiresAt || new Date(p.expiresAt) >= new Date()))
 
   return (
     <>
@@ -33,6 +39,30 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Promo Banner */}
+      {activePromos.length > 0 && (
+        <section className="py-4" style={{ backgroundColor: 'var(--color-accent)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-white text-sm">
+              <div className="flex items-center gap-2 font-medium">
+                <Tag size={16} />
+                <span>Promo Codes Available!</span>
+              </div>
+              {activePromos.map(p => (
+                <div key={p.id} className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                  <span className="font-mono font-bold">{p.code}</span>
+                  <span className="opacity-80">—</span>
+                  <span>
+                    {p.type === 'percentage' ? `${p.value}% off` : `${formatPrice(p.value)} off`}
+                    {p.minPurchase > 0 && ` (min ${formatPrice(p.minPurchase)})`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Features */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,8 +86,30 @@ export default function Home() {
         </div>
       </section>
 
+      {/* On Sale */}
+      {onSale.length > 0 && (
+        <section className="py-16" style={{ backgroundColor: 'var(--color-bg)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-10">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
+                  Current Deals
+                </h2>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-light)' }}>Don't miss out on these special prices</p>
+              </div>
+              <Link to="/shop" className="text-sm font-medium flex items-center gap-1 no-underline" style={{ color: 'var(--color-primary)' }}>
+                View All <ArrowRight size={16} />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {onSale.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Shop by Category */}
-      <section className="py-16" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
@@ -70,7 +122,7 @@ export default function Home() {
                 key={cat}
                 to={`/shop?category=${cat}`}
                 className="px-6 py-3 rounded-full text-sm font-medium transition-all no-underline"
-                style={{ backgroundColor: 'white', color: 'var(--color-text)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
               >
                 {cat}
               </Link>
@@ -80,7 +132,7 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-white">
+      <section className="py-16" style={{ backgroundColor: 'var(--color-bg)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>

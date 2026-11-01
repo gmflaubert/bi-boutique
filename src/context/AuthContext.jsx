@@ -1,28 +1,38 @@
-import { createContext, useContext, useState } from 'react'
-import { readStorage, writeStorage } from '../utils'
-import { ADMIN_CREDENTIALS } from '../config'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => readStorage('bi_auth', false))
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  function login(username, password) {
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      setIsAuthenticated(true)
-      writeStorage('bi_auth', true)
-      return true
-    }
-    return false
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const isAuthenticated = !!session
+
+  async function login(email, password) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return !error
   }
 
-  function logout() {
-    setIsAuthenticated(false)
-    writeStorage('bi_auth', false)
+  async function logout() {
+    await supabase.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

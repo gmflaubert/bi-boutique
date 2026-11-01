@@ -1,33 +1,78 @@
-import { createContext, useContext, useState } from 'react'
-import { readStorage, writeStorage, generateId } from '../utils'
-import { DEFAULT_PRODUCTS } from '../data/products'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 const ProductContext = createContext()
 
+function toProduct(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    price: row.price,
+    originalPrice: row.original_price,
+    images: row.images || [],
+    category: row.category,
+    sizes: row.sizes || [],
+    colors: row.colors || [],
+    inStock: row.in_stock,
+    featured: row.featured,
+    createdAt: row.created_at,
+  }
+}
+
+function fromProduct(data) {
+  return {
+    name: data.name,
+    description: data.description,
+    price: Number(data.price),
+    original_price: data.originalPrice ? Number(data.originalPrice) : null,
+    images: data.images,
+    category: data.category,
+    sizes: data.sizes,
+    colors: data.colors,
+    in_stock: data.inStock,
+    featured: data.featured,
+  }
+}
+
 export function ProductProvider({ children }) {
-  const [products, setProducts] = useState(() => readStorage('bi_products', DEFAULT_PRODUCTS))
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function addProduct(product) {
-    const newProduct = {
-      ...product,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
+  useEffect(() => {
+    async function load() {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (!error) setProducts(data.map(toProduct))
+      setLoading(false)
     }
-    const updated = [...products, newProduct]
-    setProducts(updated)
-    writeStorage('bi_products', updated)
+    load()
+  }, [])
+
+  async function addProduct(product) {
+    const { data, error } = await supabase
+      .from('products')
+      .insert(fromProduct(product))
+      .select()
+      .single()
+    if (!error) setProducts(prev => [toProduct(data), ...prev])
   }
 
-  function updateProduct(id, data) {
-    const updated = products.map(p => p.id === id ? { ...p, ...data } : p)
-    setProducts(updated)
-    writeStorage('bi_products', updated)
+  async function updateProduct(id, updates) {
+    const { data, error } = await supabase
+      .from('products')
+      .update(fromProduct(updates))
+      .eq('id', id)
+      .select()
+      .single()
+    if (!error) setProducts(prev => prev.map(p => p.id === id ? toProduct(data) : p))
   }
 
-  function deleteProduct(id) {
-    const updated = products.filter(p => p.id !== id)
-    setProducts(updated)
-    writeStorage('bi_products', updated)
+  async function deleteProduct(id) {
+    const { error } = await supabase.from('products').delete().eq('id', id)
+    if (!error) setProducts(prev => prev.filter(p => p.id !== id))
   }
 
   function getProduct(id) {
@@ -35,7 +80,7 @@ export function ProductProvider({ children }) {
   }
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, updateProduct, deleteProduct, getProduct }}>
+    <ProductContext.Provider value={{ products, loading, addProduct, updateProduct, deleteProduct, getProduct }}>
       {children}
     </ProductContext.Provider>
   )

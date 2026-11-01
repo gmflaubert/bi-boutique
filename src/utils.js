@@ -13,10 +13,6 @@ export function writeStorage(key, value) {
   } catch {}
 }
 
-export function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2, 7)
-}
-
 export function formatPrice(amount, currency = "RWF") {
   return `${currency} ${Number(amount).toLocaleString()}`
 }
@@ -25,7 +21,7 @@ export function buildWhatsAppUrl(number, text) {
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
-export function buildCartOrderMessage(items, total, promoCode = null, discount = 0) {
+export function buildCartOrderMessage(items, total, promoCode = null, discount = 0, location = '') {
   let msg = `🛍️ *New Order from B&I Boutique Website*\n\n`
   msg += `📋 *Order Details:*\n`
   msg += `─────────────────\n`
@@ -42,12 +38,15 @@ export function buildCartOrderMessage(items, total, promoCode = null, discount =
     msg += `💰 Discount: -${formatPrice(discount)}\n`
   }
   msg += `💵 *Total: ${formatPrice(total)}*\n\n`
+  if (location) {
+    msg += `📍 *Delivery Location:* ${location}\n\n`
+  }
   msg += `📦 Please confirm my order and share payment details.\n`
   msg += `Thank you! 🙏`
   return msg
 }
 
-export function buildProductOrderMessage(product, size, color, quantity) {
+export function buildProductOrderMessage(product, size, color, quantity, location = '') {
   let msg = `🛍️ *New Order from B&I Boutique Website*\n\n`
   msg += `📋 *Order Details:*\n`
   msg += `─────────────────\n`
@@ -58,7 +57,25 @@ export function buildProductOrderMessage(product, size, color, quantity) {
   msg += `Price: ${formatPrice(product.price * quantity)}\n`
   msg += `\n─────────────────\n`
   msg += `💵 *Total: ${formatPrice(product.price * quantity)}*\n\n`
+  if (location) {
+    msg += `📍 *Delivery Location:* ${location}\n\n`
+  }
   msg += `📦 Please confirm my order and share payment details.\n`
   msg += `Thank you! 🙏`
   return msg
+}
+
+export function getUsedPromos() {
+  return readStorage('bi_used_promos', [])
+}
+
+export function markPromoUsed(code) {
+  const used = getUsedPromos()
+  if (!used.includes(code.toUpperCase())) {
+    writeStorage('bi_used_promos', [...used, code.toUpperCase()])
+  }
+}
+
+export function isPromoUsed(code) {
+  return getUsedPromos().includes(code.toUpperCase())
 }

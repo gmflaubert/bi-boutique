@@ -1,32 +1,73 @@
-import { createContext, useContext, useState } from 'react'
-import { readStorage, writeStorage, generateId } from '../utils'
-import { DEFAULT_PROMOS } from '../data/products'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { isPromoUsed } from '../utils'
 
 const PromoContext = createContext()
 
+function toPromo(row) {
+  return {
+    id: row.id,
+    code: row.code,
+    type: row.type,
+    value: row.value,
+    minPurchase: row.min_purchase,
+    expiresAt: row.expires_at,
+    active: row.active,
+  }
+}
+
+function fromPromo(data) {
+  return {
+    code: data.code,
+    type: data.type,
+    value: Number(data.value),
+    min_purchase: Number(data.minPurchase),
+    expires_at: data.expiresAt || null,
+    active: data.active,
+  }
+}
+
 export function PromoProvider({ children }) {
-  const [promos, setPromos] = useState(() => readStorage('bi_promos', DEFAULT_PROMOS))
+  const [promos, setPromos] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function addPromo(promo) {
-    const newPromo = { ...promo, id: generateId() }
-    const updated = [...promos, newPromo]
-    setPromos(updated)
-    writeStorage('bi_promos', updated)
+  useEffect(() => {
+    async function load() {
+      const { data, error } = await supabase.from('promos').select('*')
+      if (!error) setPromos(data.map(toPromo))
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  async function addPromo(promo) {
+    const { data, error } = await supabase
+      .from('promos')
+      .insert(fromPromo(promo))
+      .select()
+      .single()
+    if (!error) setPromos(prev => [...prev, toPromo(data)])
   }
 
-  function updatePromo(id, data) {
-    const updated = promos.map(p => p.id === id ? { ...p, ...data } : p)
-    setPromos(updated)
-    writeStorage('bi_promos', updated)
+  async function updatePromo(id, updates) {
+    const { data, error } = await supabase
+      .from('promos')
+      .update(fromPromo(updates))
+      .eq('id', id)
+      .select()
+      .single()
+    if (!error) setPromos(prev => prev.map(p => p.id === id ? toPromo(data) : p))
   }
 
-  function deletePromo(id) {
-    const updated = promos.filter(p => p.id !== id)
-    setPromos(updated)
-    writeStorage('bi_promos', updated)
+  async function deletePromo(id) {
+    const { error } = await supabase.from('promos').delete().eq('id', id)
+    if (!error) setPromos(prev => prev.filter(p => p.id !== id))
   }
 
   function validatePromo(code, subtotal) {
+    if (isPromoUsed(code)) {
+      return { valid: false, message: "You have already used this promo code" }
+    }
     const promo = promos.find(p => p.code.toUpperCase() === code.toUpperCase() && p.active)
     if (!promo) return { valid: false, message: "Invalid promo code" }
     if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) return { valid: false, message: "Promo code has expired" }
@@ -36,7 +77,7 @@ export function PromoProvider({ children }) {
   }
 
   return (
-    <PromoContext.Provider value={{ promos, addPromo, updatePromo, deletePromo, validatePromo }}>
+    <PromoContext.Provider value={{ promos, loading, addPromo, updatePromo, deletePromo, validatePromo }}>
       {children}
     </PromoContext.Provider>
   )

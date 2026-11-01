@@ -27,15 +27,19 @@ export default function AdminPromos() {
     setEditing(p.id)
   }
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
     const data = {
       ...form,
       value: Number(form.value),
       minPurchase: Number(form.minPurchase),
       expiresAt: form.expiresAt || null,
     }
-    if (editing === 'new') addPromo(data)
-    else updatePromo(editing, data)
+    if (editing === 'new') await addPromo(data)
+    else await updatePromo(editing, data)
+    setSaving(false)
     setEditing(null)
   }
 
@@ -139,7 +143,7 @@ export default function AdminPromos() {
 
             <div className="flex gap-3 mt-6">
               <button onClick={() => setEditing(null)} className="btn-secondary flex-1 text-sm">Cancel</button>
-              <button onClick={handleSave} className="btn-primary flex-1 text-sm">Save</button>
+              <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 text-sm">{saving ? 'Saving…' : 'Save'}</button>
             </div>
           </div>
         </div>

@@ -4,22 +4,26 @@ import { useAuth } from '../../context/AuthContext'
 import { STORE_CONFIG } from '../../config'
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { login, isAuthenticated } = useAuth()
+  const [submitting, setSubmitting] = useState(false)
+  const { login, isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()
 
-  if (isAuthenticated) {
-    return <Navigate to="/admin" replace />
-  }
+  if (loading) return null
+  if (isAuthenticated) return <Navigate to="/admin" replace />
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (login(username, password)) {
+    setError('')
+    setSubmitting(true)
+    const success = await login(email, password)
+    if (success) {
       navigate('/admin')
     } else {
-      setError('Invalid credentials')
+      setError('Invalid email or password')
+      setSubmitting(false)
     }
   }
 
@@ -34,11 +38,11 @@ export default function AdminLogin() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Username</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Email</label>
             <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-pink-400 focus:outline-none"
               required
             />
@@ -54,7 +58,9 @@ export default function AdminLogin() {
             />
           </div>
           {error && <p className="text-sm" style={{ color: '#ef4444' }}>{error}</p>}
-          <button type="submit" className="btn-primary w-full">Sign In</button>
+          <button type="submit" disabled={submitting} className="btn-primary w-full">
+            {submitting ? 'Signing in...' : 'Sign In'}
+          </button>
         </form>
       </div>
     </div>
