@@ -65,6 +65,27 @@ export function buildProductOrderMessage(product, size, color, quantity, locatio
   return msg
 }
 
+export function buildCartOrderMessageCompact(items, total, promoCode = null, discount = 0, location = '') {
+  let msg = `Order - B&I Boutique\n\n`
+  items.forEach((item, i) => {
+    msg += `${i + 1}. ${item.product.name}\n`
+    msg += `${item.selectedSize}/${item.selectedColor} x${item.quantity} - RWF ${(item.product.price * item.quantity).toLocaleString()}\n`
+  })
+  if (promoCode && discount > 0) msg += `\nPromo: ${promoCode} (-RWF ${discount.toLocaleString()})\n`
+  msg += `\nTotal: RWF ${total.toLocaleString()}`
+  if (location) msg += `\nDeliver to: ${location}`
+  return msg
+}
+
+export function buildProductOrderMessageCompact(product, size, color, quantity, location = '') {
+  let msg = `Order - B&I Boutique\n\n`
+  msg += `${product.name}\n`
+  msg += `${size}/${color} x${quantity} - RWF ${(product.price * quantity).toLocaleString()}\n`
+  msg += `\nTotal: RWF ${(product.price * quantity).toLocaleString()}`
+  if (location) msg += `\nDeliver to: ${location}`
+  return msg
+}
+
 export function getUsedPromos() {
   return readStorage('bi_used_promos', [])
 }

@@ -5,7 +5,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useCart } from '../context/CartContext'
 import { usePromos } from '../context/PromoContext'
 import { useOrders } from '../context/OrderContext'
-import { formatPrice, buildWhatsAppUrl, buildCartOrderMessage, isPromoUsed, markPromoUsed } from '../utils'
+import { formatPrice, buildWhatsAppUrl, buildCartOrderMessage, buildCartOrderMessageCompact, isPromoUsed, markPromoUsed } from '../utils'
 import { STORE_CONFIG } from '../config'
 
 export default function Cart() {
@@ -52,7 +52,8 @@ export default function Cart() {
 
   const waMessage = buildCartOrderMessage(cart, total, appliedCode, discount, location)
   const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
-  const waQrUrl = waUrl
+  const waQrMessage = buildCartOrderMessageCompact(cart, total, appliedCode, discount, location)
+  const waQrUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waQrMessage)
 
   if (cart.length === 0 && !showQR) {
     return (

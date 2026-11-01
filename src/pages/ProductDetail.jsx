@@ -4,7 +4,7 @@ import { ArrowLeft, Minus, Plus, ShoppingBag, MessageCircle, Check, X, MapPin } 
 import { QRCodeSVG } from 'qrcode.react'
 import { useProducts } from '../context/ProductContext'
 import { useCart } from '../context/CartContext'
-import { formatPrice, buildWhatsAppUrl, buildProductOrderMessage } from '../utils'
+import { formatPrice, buildWhatsAppUrl, buildProductOrderMessage, buildProductOrderMessageCompact } from '../utils'
 import { STORE_CONFIG } from '../config'
 
 export default function ProductDetail() {
@@ -40,7 +40,8 @@ export default function ProductDetail() {
 
   const waMessage = buildProductOrderMessage(product, selectedSize, selectedColor, quantity, location)
   const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
-  const waQrUrl = waUrl
+  const waQrMessage = buildProductOrderMessageCompact(product, selectedSize, selectedColor, quantity, location)
+  const waQrUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waQrMessage)
 
   const isLightColor = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16)
