@@ -9,6 +9,7 @@ function toOrder(row) {
     id: row.id,
     items: row.items || [],
     total: row.total,
+    customerName: row.customer_name || '',
     customerPhone: row.customer_phone || '',
     deliveryLocation: row.delivery_location || '',
     promoCode: row.promo_code,
@@ -40,10 +41,11 @@ export function OrderProvider({ children }) {
     load()
   }, [isAuthenticated, authLoading])
 
-  async function addOrder(items, total, customerPhone, promoCode = null, deliveryLocation = '') {
+  async function addOrder(items, total, customerName, customerPhone, promoCode = null, deliveryLocation = '') {
     await supabase.from('orders').insert({
       items,
       total,
+      customer_name: customerName,
       customer_phone: customerPhone,
       promo_code: promoCode,
       delivery_location: deliveryLocation,

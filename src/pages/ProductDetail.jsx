@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Minus, Plus, ShoppingBag, MessageCircle, Check, X, MapPin } from 'lucide-react'
+import { ArrowLeft, Minus, Plus, ShoppingBag, MessageCircle, Check, X, MapPin, User } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useProducts } from '../context/ProductContext'
 import { useCart } from '../context/CartContext'
@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || '')
   const [selectedColor, setSelectedColor] = useState(product?.colors?.[0]?.name || '')
   const [quantity, setQuantity] = useState(1)
+  const [customerName, setCustomerName] = useState('')
   const [location, setLocation] = useState('')
   const [added, setAdded] = useState(false)
   const [showQR, setShowQR] = useState(false)
@@ -38,9 +39,9 @@ export default function ProductDetail() {
     setTimeout(() => setAdded(false), 2000)
   }
 
-  const waMessage = buildProductOrderMessage(product, selectedSize, selectedColor, quantity, location)
+  const waMessage = buildProductOrderMessage(product, selectedSize, selectedColor, quantity, location, customerName)
   const waUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waMessage)
-  const waQrMessage = buildProductOrderMessageCompact(product, selectedSize, selectedColor, quantity, location)
+  const waQrMessage = buildProductOrderMessageCompact(product, selectedSize, selectedColor, quantity, location, customerName)
   const waQrUrl = buildWhatsAppUrl(STORE_CONFIG.whatsappNumber, waQrMessage)
 
   const isLightColor = (hex) => {
@@ -159,6 +160,21 @@ export default function ProductDetail() {
             </div>
           </div>
 
+          {/* Customer Name */}
+          <div className="mb-6">
+            <p className="text-sm font-medium mb-2 flex items-center gap-1" style={{ color: 'var(--color-text)' }}>
+              <User size={14} /> Your Name
+            </p>
+            <input
+              type="text"
+              placeholder="Enter your full name"
+              value={customerName}
+              onChange={e => setCustomerName(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-pink-400 focus:outline-none text-sm"
+              style={{ fontFamily: 'var(--font-body)' }}
+            />
+          </div>
+
           {/* Delivery Location */}
           <div className="mb-6">
             <p className="text-sm font-medium mb-2 flex items-center gap-1" style={{ color: 'var(--color-text)' }}>
@@ -187,15 +203,15 @@ export default function ProductDetail() {
             <button
               onClick={() => setShowQR(true)}
               className="btn-primary flex-1 gap-2"
-              disabled={!product.inStock || !location.trim()}
-              style={!product.inStock || !location.trim() ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+              disabled={!product.inStock || !customerName.trim() || !location.trim()}
+              style={!product.inStock || !customerName.trim() || !location.trim() ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
             >
               <MessageCircle size={18} /> Order via WhatsApp
             </button>
           </div>
-          {!location.trim() && (
+          {(!customerName.trim() || !location.trim()) && (
             <p className="text-xs mt-2" style={{ color: 'var(--color-text-light)' }}>
-              Enter your delivery location to order via WhatsApp
+              Please enter your name and delivery location to order via WhatsApp
             </p>
           )}
         </div>

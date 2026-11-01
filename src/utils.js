@@ -21,8 +21,9 @@ export function buildWhatsAppUrl(number, text) {
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
-export function buildCartOrderMessage(items, total, promoCode = null, discount = 0, location = '') {
+export function buildCartOrderMessage(items, total, promoCode = null, discount = 0, location = '', customerName = '') {
   let msg = `🛍️ *New Order from B&I Boutique Website*\n\n`
+  if (customerName) msg += `👤 *Customer:* ${customerName}\n\n`
   msg += `📋 *Order Details:*\n`
   msg += `─────────────────\n`
   items.forEach((item, i) => {
@@ -46,8 +47,9 @@ export function buildCartOrderMessage(items, total, promoCode = null, discount =
   return msg
 }
 
-export function buildProductOrderMessage(product, size, color, quantity, location = '') {
+export function buildProductOrderMessage(product, size, color, quantity, location = '', customerName = '') {
   let msg = `🛍️ *New Order from B&I Boutique Website*\n\n`
+  if (customerName) msg += `👤 *Customer:* ${customerName}\n\n`
   msg += `📋 *Order Details:*\n`
   msg += `─────────────────\n`
   msg += `\n*${product.name}*\n`
@@ -65,8 +67,9 @@ export function buildProductOrderMessage(product, size, color, quantity, locatio
   return msg
 }
 
-export function buildCartOrderMessageCompact(items, total, promoCode = null, discount = 0, location = '') {
+export function buildCartOrderMessageCompact(items, total, promoCode = null, discount = 0, location = '', customerName = '') {
   let msg = `Order - B&I Boutique\n\n`
+  if (customerName) msg += `Customer: ${customerName}\n\n`
   items.forEach((item, i) => {
     msg += `${i + 1}. ${item.product.name}\n`
     msg += `${item.selectedSize}/${item.selectedColor} x${item.quantity} - RWF ${(item.product.price * item.quantity).toLocaleString()}\n`
@@ -77,8 +80,9 @@ export function buildCartOrderMessageCompact(items, total, promoCode = null, dis
   return msg
 }
 
-export function buildProductOrderMessageCompact(product, size, color, quantity, location = '') {
+export function buildProductOrderMessageCompact(product, size, color, quantity, location = '', customerName = '') {
   let msg = `Order - B&I Boutique\n\n`
+  if (customerName) msg += `Customer: ${customerName}\n\n`
   msg += `${product.name}\n`
   msg += `${size}/${color} x${quantity} - RWF ${(product.price * quantity).toLocaleString()}\n`
   msg += `\nTotal: RWF ${(product.price * quantity).toLocaleString()}`

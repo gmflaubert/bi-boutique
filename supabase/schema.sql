@@ -24,6 +24,7 @@ CREATE TABLE orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   items JSONB NOT NULL DEFAULT '[]'::JSONB,
   total INTEGER NOT NULL,
+  customer_name TEXT DEFAULT '',
   customer_phone TEXT DEFAULT '',
   delivery_location TEXT DEFAULT '',
   promo_code TEXT,

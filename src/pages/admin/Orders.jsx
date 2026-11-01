@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2, MapPin } from 'lucide-react'
+import { Trash2, MapPin, User } from 'lucide-react'
 import { useOrders } from '../../context/OrderContext'
 import { formatPrice } from '../../utils'
 
@@ -87,6 +87,13 @@ export default function AdminOrders() {
                   </div>
                 ))}
               </div>
+
+              {order.customerName && (
+                <div className="flex items-center gap-1.5 mb-2 text-sm" style={{ color: 'var(--color-text)' }}>
+                  <User size={14} />
+                  <span className="font-medium">{order.customerName}</span>
+                </div>
+              )}
 
               {order.deliveryLocation && (
                 <div className="flex items-center gap-1.5 mb-3 text-sm" style={{ color: 'var(--color-text-light)' }}>
